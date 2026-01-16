@@ -1,0 +1,7 @@
+[flake8]
+# Ignorar errores que no son graves:
+# E501: Línea muy larga (a veces en Django es necesario)
+# W503: Salto de línea antes de operador binario (Black lo prefiere así)
+ignore = E501, W503
+max-line-length = 88
+exclude = .git,__pycache__,migrations,venv
