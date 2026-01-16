@@ -1,0 +1,9 @@
+Django>=4.2,<5.0
+djangorestframework
+psycopg2-binary
+redis
+celery
+python-dotenv
+pytest
+pytest-django
+requests
