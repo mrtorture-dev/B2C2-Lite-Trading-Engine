@@ -9,3 +9,5 @@ pytest-django
 requests
 flake8
 black
+web3
+eth-account

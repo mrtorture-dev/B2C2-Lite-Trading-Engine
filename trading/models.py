@@ -58,9 +58,18 @@ class Order(models.Model):
 
 
 class Trade(models.Model):
-    """Registro inmutable de una ejecución real"""
-
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="trades")
+    """
+    Registro del Match: Une una orden de compra con una de venta.
+    """
+    # Pata 1: La orden que compró
+    buy_order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='buy_trades')
+    
+    # Pata 2: La orden que vendió
+    sell_order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='sell_trades')
+    
     amount = models.DecimalField(max_digits=18, decimal_places=8)
     price = models.DecimalField(max_digits=18, decimal_places=8)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Match: {self.amount} {self.buy_order.asset.code} @ {self.price}"

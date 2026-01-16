@@ -1,11 +1,30 @@
-<h2 class="text-hackerRed text-xl mb-4">> USER_PORTFOLIO</h2>
-<div class="grid grid-cols-2 gap-4">
-    <div class="border border-hackerRed/30 p-3">
-        <div class="text-xs text-hackerRed">USD BALANCE</div>
-        <div class="text-2xl">{{ usd_balance|floatformat:2 }} $</div>
+<h2 class="text-hackerRed text-xl mb-4">> USER_PORTFOLIO_LIVE</h2>
+
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    
+    {% for wallet in wallets %}
+    <div class="border border-hackerRed/40 p-3 bg-black/40 hover:bg-hackerRed/10 transition-all cursor-default group">
+        <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-hackerRed font-bold tracking-widest">{{ wallet.asset.code }}</span>
+            {% if wallet.asset.code == 'USD' %}
+                <span class="text-[10px] text-green-500">FIAT</span>
+            {% else %}
+                <span class="text-[10px] text-gray-500">CRYPTO</span>
+            {% endif %}
+        </div>
+        
+        <div class="text-xl md:text-2xl font-mono text-white group-hover:text-hackerRed transition-colors truncate">
+            {% if wallet.asset.code == 'USD' %}
+                ${{ wallet.balance|floatformat:2 }}
+            {% else %}
+                {{ wallet.balance|floatformat:6 }} <span class="text-xs">U</span>
+            {% endif %}
+        </div>
     </div>
-    <div class="border border-hackerRed/30 p-3">
-        <div class="text-xs text-hackerRed">BTC HOLDINGS</div>
-        <div class="text-2xl">{{ btc_balance|floatformat:8 }} ₿</div>
+    {% empty %}
+    <div class="col-span-3 text-gray-500 text-sm border border-gray-800 p-4 text-center">
+        > NO_ASSETS_FOUND
     </div>
+    {% endfor %}
+
 </div>

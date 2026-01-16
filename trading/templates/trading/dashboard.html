@@ -1,69 +1,119 @@
 {% extends 'trading/base.html' %}
 
 {% block content %}
+<div style="background: white; color: black; padding: 10px; font-weight: bold; text-align: center;">
+    DEBUG REAL: El usuario actual es: {{ user.username }} <br>
+    ¿Está autenticado?: {{ user.is_authenticated }}
+</div>
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     
     <div class="md:col-span-2 space-y-6">
         
         <div class="neon-border bg-black/50 p-6 rounded-sm">
-            <h2 class="text-hackerRed text-xl mb-2">> MARKET_DATA: BTC/USD</h2>
-            <div id="btc-price-display" 
-                 class="text-6xl font-bold text-white terminal-text"
+            <h2 class="text-hackerRed text-xl mb-4">> BINANCE_FEED: LIVE</h2>
+            <div id="price-ticker" 
+                 class="terminal-text"
                  hx-get="/api/price-htmx/" 
                  hx-trigger="load, every 3s"
                  hx-swap="innerHTML">
-                Loading...
+                Loading Market Data...
             </div>
         </div>
 
-        <div id="portfolio-section" class="neon-border bg-black/50 p-6 rounded-sm">
-            {% include 'trading/partials/portfolio_partial.html' %}
+        <div id="portfolio-section" class="neon-border bg-black/50 p-6 rounded-sm min-h-[200px]">
+             <div hx-get="/api/portfolio-htmx/" 
+                  hx-trigger="load, updatePortfolio from:body"
+                  hx-swap="innerHTML">
+                  {% include 'trading/partials/portfolio_partial.html' %}
+             </div>
         </div>
     </div>
 
-    <div class="neon-border bg-black/50 p-6 rounded-sm">
+    <div class="neon-border bg-black/50 p-6 rounded-sm flex flex-col h-full">
         <h2 class="text-hackerRed text-xl mb-4">> EXECUTE_ORDER</h2>
         
         <form hx-post="/api/orders-htmx/" 
               hx-target="#order-message" 
-              hx-swap="innerHTML">
+              hx-swap="innerHTML"
+              hx-on::after-request="this.reset()"> 
             {% csrf_token %}
             
             <div class="space-y-4">
+
+                <div class="border-b border-hackerRed/30 pb-3 mb-2">
+                    <label class="text-hackerRed text-[10px] tracking-widest mb-2 block">EXECUTION MODE</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center cursor-pointer hover:text-white transition-colors group">
+                            <input type="radio" name="order_execution_type" value="INSTANT" checked 
+                                   class="accent-hackerRed mr-2 w-3 h-3 cursor-pointer">
+                            <span class="text-gray-400 text-xs group-hover:text-hackerRed">INSTANT (LP 1%)</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer hover:text-white transition-colors group">
+                            <input type="radio" name="order_execution_type" value="LIMIT" 
+                                   class="accent-hackerRed mr-2 w-3 h-3 cursor-pointer">
+                            <span class="text-gray-400 text-xs group-hover:text-hackerRed">P2P LIMIT</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div>
-                   <label class="text-hackerRed text-sm">ASSET</label>
-                   <input type="text" name="asset_code" value="BTC" readonly 
-                          class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none focus:ring-1 focus:ring-hackerRed">
+                   <label class="text-hackerRed text-sm">SELECT ASSET</label>
+                   <select name="asset_code" class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none text-sm">
+                       {% for asset in assets %}
+                           <option value="{{ asset.code }}">{{ asset.code }} - {{ asset.name }}</option>
+                       {% endfor %}
+                   </select>
                 </div>
 
                 <div>
                     <label class="text-hackerRed text-sm">SIDE</label>
-                    <select name="side" class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none">
-                        <option value="BUY" class="bg-black">BUY (Long)</option>
-                        <option value="SELL" class="bg-black">SELL (Short)</option>
+                    <select name="side" class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none text-sm">
+                        <option value="BUY">BUY (Long)</option>
+                        <option value="SELL">SELL (Short)</option>
                     </select>
                 </div>
 
                  <div>
-                    <label class="text-hackerRed text-sm">AMOUNT (BTC)</label>
+                    <label class="text-hackerRed text-sm">AMOUNT</label>
                     <input type="number" step="0.00000001" name="amount" placeholder="0.0" required
-                           class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none focus:ring-1 focus:ring-hackerRed">
+                           class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none focus:ring-1 focus:ring-hackerRed text-sm">
                 </div>
 
                  <div>
                     <label class="text-hackerRed text-sm">LIMIT PRICE (USD)</label>
-                    <input type="number" step="0.01" name="price" placeholder="Current Price" required
-                           class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none focus:ring-1 focus:ring-hackerRed">
+                    <input type="number" step="0.01" name="price" placeholder="Target Price" required
+                           class="w-full bg-black border border-hackerRed text-white p-2 focus:outline-none focus:ring-1 focus:ring-hackerRed text-sm">
                 </div>
                 
                 <button type="submit" 
                         class="w-full bg-hackerRed/80 hover:bg-hackerRed text-black font-bold py-3 mt-6 neon-border transition-all active:scale-95">
-                    [ EXECUTE TRANSACTION ]
+                    [ EXECUTE ]
                 </button>
             </div>
         </form>
 
-        <div id="order-message" class="mt-4 text-sm"></div>
+        <div id="order-message" class="mt-4 text-sm font-bold animate-pulse text-center min-h-[20px]"></div>
+
+        <div id="my-orders-section"
+             class="mt-4"
+             hx-get="/api/my-orders-htmx/"
+             hx-trigger="load, updateMyOrders from:body, updateOrderBook from:body"
+             hx-swap="innerHTML">
+             </div>
+
+        <hr class="border-hackerRed/30 my-6">
+
+        <div class="flex-grow flex flex-col"
+             hx-get="/api/order-book-htmx/"
+             hx-trigger="load, updateOrderBook from:body, every 5s"
+             hx-swap="innerHTML">
+             
+             <div class="text-center text-xs text-hackerRed animate-pulse mt-4">
+                 > SCANNING_P2P_NETWORK...
+             </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

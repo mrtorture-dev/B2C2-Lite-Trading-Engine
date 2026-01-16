@@ -58,15 +58,18 @@ ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # --- CAMBIO IMPORTANTE AQUÍ ---
+        # Le decimos: "Mira en la carpeta templates de la app trading PRIMERO"
+        'DIRS': [BASE_DIR / 'trading' / 'templates'], 
+        # ------------------------------
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -137,9 +140,9 @@ CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULE = {
-    "fetch-btc-every-30-seconds": {
-        "task": "trading.tasks.fetch_btc_price",
-        "schedule": 30.0,  # Ejecutar cada 30 segundos
+    'fetch-crypto-prices-every-30s': {  # Puedes cambiarle el nombre a la clave si quieres
+        'task': 'trading.tasks.fetch_binance_prices',  # <--- AQUÍ ESTABA EL ERROR (Antes decía fetch_btc_price)
+        'schedule': 30.0,
     },
 }
 
@@ -151,3 +154,13 @@ CACHES = {
         "LOCATION": "redis://redis:6379/1",
     }
 }
+
+# config/settings.py
+
+# ... al final del archivo ...
+
+# --- CONFIGURACIÓN DE COOKIES PARA DEV ---
+SESSION_COOKIE_SECURE = False  # False para localhost (True solo en producción con HTTPS)
+CSRF_COOKIE_SECURE = False     # False para localhost
+SESSION_COOKIE_SAMESITE = 'Lax' # Permite envío normal
+SESSION_COOKIE_HTTPONLY = True

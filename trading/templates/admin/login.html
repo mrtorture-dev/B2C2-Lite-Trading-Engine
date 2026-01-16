@@ -1,0 +1,219 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* --- HACKER LOGIN STYLE --- */
+    body { background-color: #050505 !important; color: #e5e7eb !important; }
+    
+    /* Contenedor Central */
+    #container { 
+        background: #0a0a0a !important; 
+        border: 1px solid #ff0033; 
+        box-shadow: 0 0 30px rgba(255, 0, 51, 0.2);
+        max-width: 400px !important;
+        margin-top: 100px !important;
+    }
+    
+    /* Header (B2C2_KERNEL) */
+    #header { 
+        background: #000 !important; 
+        border-bottom: 2px solid #ff0033; 
+        color: #ff0033 !important;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+    }
+    
+    /* Inputs y Labels */
+    .form-row { border-bottom: none !important; padding: 10px 0; }
+    label { color: #ff0033 !important; font-weight: bold; display: block; margin-bottom: 5px;}
+    input { 
+        background: #000 !important; 
+        color: #fff !important; 
+        border: 1px solid #333 !important; 
+        width: 100%; 
+        padding: 8px;
+        font-family: monospace;
+    }
+    input:focus { border-color: #ff0033 !important; outline: none; }
+    
+    /* Botón Submit Clásico */
+    input[type="submit"] { 
+        background: #333 !important; 
+        color: #fff !important; 
+        border: 1px solid #555 !important; 
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    input[type="submit"]:hover { background: #ff0033 !important; color: #000 !important; }
+    
+    /* --- EL BOTÓN 0xADDRESS (Estilo Repo) --- */
+    #btn-0x {
+        width: 100%;
+        background: #000;
+        border: 1px solid #ff0033;
+        color: #ff0033;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    #btn-0x:hover {
+        background: #ff0033;
+        color: #000;
+        box-shadow: 0 0 15px #ff0033;
+    }
+    
+    #btn-0x svg { width: 20px; height: 20px; }
+    
+    .divider { 
+        text-align: center; margin: 25px 0; color: #555; font-size: 10px; letter-spacing: 2px; 
+    }
+
+    #console-output {
+        margin-top: 15px;
+        font-size: 10px;
+        color: #ff0033;
+        font-family: monospace;
+        min-height: 20px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 20px;">
+    
+    <h2 style="color: #ff0033; text-align: center; margin-bottom: 20px; font-family: monospace;">> SYSTEM_OVERRIDE</h2>
+    
+    <form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+        <div class="form-row">
+            <label for="id_username">SUPERUSER_ID:</label>
+            <input type="text" name="username" autofocus required id="id_username">
+        </div>
+        <div class="form-row">
+            <label for="id_password">ACCESS_KEY:</label>
+            <input type="password" name="password" required id="id_password">
+        </div>
+        <div class="submit-row" style="margin-top: 10px;">
+            <input type="submit" value="[ DECRYPT ]">
+        </div>
+    </form>
+
+    <div class="divider">- OR USE CRYPTO SIGNATURE -</div>
+
+    <button id="btn-0x" onclick="loginWith0x()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z"/>
+        </svg>
+        0x_ADDRESS LOGIN
+    </button>
+    
+    <div id="console-output">> WAITING_FOR_INPUT...</div>
+
+</div>
+
+<script>
+async function loginWith0x() {
+    // Función auxiliar para mostrar logs en pantalla
+    const log = (msg) => {
+        console.log(msg); // También logueamos en la consola del navegador
+        document.getElementById('console-output').innerText = "> " + msg;
+    };
+
+    // 1. Verificar si existe Web3 (MetaMask, etc)
+    if (!window.ethereum) {
+        log("ERROR: NO_WEB3_PROVIDER_FOUND");
+        window.open('https://metamask.io/download/', '_blank');
+        return;
+    }
+
+    try {
+        log("REQUESTING_ACCOUNTS...");
+        
+        // --- AQUÍ ESTABA EL ERROR: Faltaba definir 'address' ---
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0]; // <--- ¡ESTA ES LA VARIABLE QUE FALTABA!
+        
+        if (!address) {
+            throw new Error("NO_ACCOUNTS_FOUND");
+        }
+        
+        log("ADDRESS: " + address.substring(0,6) + "...");
+        // -------------------------------------------------------
+
+        // 2. Pedir Nonce al Backend
+        log("FETCHING_NONCE...");
+        const nonceRes = await fetch('/api/web3-nonce/', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!nonceRes.ok) throw new Error("NONCE_ENDPOINT_ERROR: " + nonceRes.status);
+        
+        const nonceData = await nonceRes.json();
+        const nonce = nonceData.nonce;
+        console.log("NONCE RAW:", nonce);
+
+        // 3. Convertir a Hex (Para evitar el error INVALID_SIGNATURE)
+        // Convertimos cada caracter del nonce a su código Hex
+        const hexNonce = "0x" + Array.from(nonce).map(c => c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+        console.log("NONCE HEX:", hexNonce);
+
+        // 4. Firmar el Mensaje
+        log("SIGNING...");
+        const signature = await window.ethereum.request({
+            method: 'personal_sign',
+            params: [hexNonce, address], // Ahora 'address' sí existe
+        });
+        console.log("FIRMA:", signature);
+
+        // 5. Enviar Credenciales al Backend
+        log("VERIFYING...");
+        const loginRes = await fetch('/api/web3-login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ address, signature }),
+            credentials: 'include' // Importante para mantener la sesión
+        });
+
+        const respData = await loginRes.json();
+
+        if (loginRes.ok) {
+            log("ACCESS_GRANTED. RELOADING_KERNEL...");
+            
+            setTimeout(() => {
+                const timestamp = new Date().getTime();
+                // Usamos 'replace' para que no pueda volver atrás con el botón Back
+                window.location.replace("/?cache_kill=" + timestamp); 
+            }, 500); 
+            // -------------------------------------------------------
+        } else {
+            log("ACCESS_DENIED: " + (respData.error || "UNKNOWN_ERROR"));
+            console.error("Server Response:", respData);
+        }
+
+    } catch (err) {
+        console.error(err);
+        if (err.code === 4001) {
+            log("USER_REJECTED_REQUEST");
+        } else {
+            log("FATAL_ERROR: " + err.message);
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -5,7 +5,14 @@ from .views import (
     CreateOrderView, 
     dashboard_view, 
     price_htmx_view, 
-    create_order_htmx_view
+    create_order_htmx_view,
+    portfolio_htmx_view,
+    order_book_htmx_view,
+    accept_order_htmx_view,
+    my_orders_htmx_view,    
+    cancel_order_htmx_view,
+    get_login_nonce, 
+    web3_login_view
 )
 
 urlpatterns = [
@@ -19,4 +26,11 @@ urlpatterns = [
     # Endpoints para HTMX (HTML dinámico)
     path('price-htmx/', price_htmx_view, name='price-htmx'),
     path('orders-htmx/', create_order_htmx_view, name='orders-htmx'),
+    path('portfolio-htmx/', portfolio_htmx_view, name='portfolio-htmx'),
+    path('order-book-htmx/', order_book_htmx_view, name='order-book-htmx'),
+    path('accept-order/<int:order_id>/', accept_order_htmx_view, name='accept-order'),
+    path('my-orders-htmx/', my_orders_htmx_view, name='my-orders-htmx'),
+    path('cancel-order/<int:order_id>/', cancel_order_htmx_view, name='cancel-order'),
+    path('web3-nonce/', get_login_nonce, name='web3-nonce'),
+    path('web3-login/', web3_login_view, name='web3-login'),
 ]

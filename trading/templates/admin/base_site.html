@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+
+{% block title %}B2C2 COMMAND CENTER{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="color: #ff0033 !important; font-family: 'Courier New', monospace; letter-spacing: 2px;">
+        > B2C2_KERNEL_ACCESS
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+<style>
+    /* --- VARIABLES GLOBALES (Tema Oscuro) --- */
+    :root {
+        --primary: #ff0033 !important;
+        --secondary: #cc0029 !important;
+        --accent: #ff0033 !important;
+        --body-bg: #050505 !important;
+        --header-bg: #000000 !important;
+        --header-color: #ff0033 !important;
+        --darkened-bg: #0a0a0a !important;
+        --body-fg: #e5e7eb !important; /* Color de texto principal (Gris claro) */
+        --body-quiet-color: #ff4d6d !important;
+        --header-link-color: #ff0033 !important;
+        --border-color: #333 !important;
+        --hairline-color: #ff0033 !important;
+        --object-tools-bg: #111 !important;
+        --object-tools-fg: #ff0033 !important;
+        --button-bg: #ff0033 !important;
+        --button-fg: #000000 !important;
+        --button-hover-bg: #fff !important;
+        --default-button-bg: #330000 !important;
+    }
+
+    /* --- CORRECCIONES DE TEXTO INVISIBLE (¡Lo Nuevo!) --- */
+    
+    /* 1. Títulos de los Módulos (ej: "Authentication and Authorization") */
+    /* Estaban en negro sobre las barras rojas u oscuras */
+    .module caption, .module h2, .module h3, caption a.section {
+        background-color: #1a1a1a !important; /* Fondo oscuro para el título */
+        color: #ff0033 !important;            /* Texto ROJO */
+        font-weight: bold !important;
+        padding: 8px !important;
+        border-bottom: 1px solid #ff0033 !important;
+    }
+
+    /* 2. Enlaces Principales (ej: "Groups", "Users", "Assets") */
+    /* Django los pone azul oscuro por defecto */
+    div.module table a:link, div.module table a:visited,
+    .model-group a:link, .model-group a:visited,
+    #content-main a:link, #content-main a:visited {
+        color: #ff0033 !important; /* Texto ROJO */
+        font-weight: bold;
+    }
+    /* Al pasar el mouse, se ponen blancos */
+    div.module table a:hover, .model-group a:hover, #content-main a:hover {
+        color: #ffffff !important;
+    }
+
+    /* 3. Texto general del cuerpo y listas */
+    body, p, li, ul, ol, div, span {
+        color: var(--body-fg) !important;
+    }
+
+    /* 4. Barra Lateral (Recent Actions) */
+    #content-related {
+        background-color: #0a0a0a !important;
+        color: #e5e7eb !important;
+    }
+    #content-related h3 {
+        color: #e5e7eb !important;
+    }
+    #content-related .actionlist li {
+        color: #e5e7eb !important;
+    }
+
+    /* --- RESTO DE ESTILOS (Header, Tablas, Inputs) --- */
+    body, td, th, input, select { font-family: 'Courier New', Courier, monospace !important; }
+    #header { background: var(--header-bg) !important; border-bottom: 2px solid var(--primary); }
+    div.breadcrumbs { background: #111 !important; color: #888; }
+    div.breadcrumbs a { color: #ff0033 !important; }
+    #changelist table thead th { background: var(--primary) !important; color: #000 !important; }
+    #changelist table tbody tr { background: #000 !important; }
+    #changelist table tbody tr:hover { background: #330000 !important; }
+    #changelist-filter { background: #0a0a0a !important; border-left: 1px solid var(--primary) !important; }
+    input, select, textarea { background-color: #000 !important; color: #fff !important; border: 1px solid #555 !important; }
+    #user-tools a { border-bottom: 1px solid var(--primary) !important; }
+</style>
+{% endblock %}
