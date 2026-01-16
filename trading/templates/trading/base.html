@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2C2 Lite Terminal</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Definimos nuestro rojo hacker
+                        hackerRed: '#ff0033',
+                        hackerDark: '#0a0a0a',
+                    },
+                    fontFamily: {
+                        // Fuente tipo terminal
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+    <style>
+        /* Un pequeño truco para que se vea más "cyberpunk" */
+        body {
+            background-color: #050505; /* Casi negro puro */
+            color: #e5e7eb;
+        }
+        .neon-border {
+            box-shadow: 0 0 5px #ff0033, 0 0 10px #ff0033 inset;
+            border: 1px solid #ff0033;
+        }
+        .terminal-text {
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 0 5px #ff0033;
+        }
+    </style>
+</head>
+<body class="bg-hackerDark text-gray-300 font-mono min-h-screen p-6">
+    <header class="mb-8 border-b border-hackerRed/50 pb-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-hackerRed terminal-text">
+            > B2C2_LITE_TERMINAL v1.0
+        </h1>
+        <div class="text-sm text-hackerRed">
+             STATUS: <span class="animate-pulse">ONLINE</span>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script>
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+</body>
+</html>

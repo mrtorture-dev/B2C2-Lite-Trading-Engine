@@ -142,3 +142,12 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 30.0,  # Ejecutar cada 30 segundos
     },
 }
+
+# CONFIGURACIÓN DE CACHÉ (Redis)
+# Esto conecta la memoria de Django con el contenedor de Redis
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+    }
+}

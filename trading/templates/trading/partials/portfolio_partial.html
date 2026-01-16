@@ -1,0 +1,11 @@
+<h2 class="text-hackerRed text-xl mb-4">> USER_PORTFOLIO</h2>
+<div class="grid grid-cols-2 gap-4">
+    <div class="border border-hackerRed/30 p-3">
+        <div class="text-xs text-hackerRed">USD BALANCE</div>
+        <div class="text-2xl">{{ usd_balance|floatformat:2 }} $</div>
+    </div>
+    <div class="border border-hackerRed/30 p-3">
+        <div class="text-xs text-hackerRed">BTC HOLDINGS</div>
+        <div class="text-2xl">{{ btc_balance|floatformat:8 }} ₿</div>
+    </div>
+</div>

@@ -17,8 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from trading.views import dashboard_view
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", include("trading.urls")),
+    path('admin/', admin.site.urls),
+    
+    # 1. Ruta para la página principal (Dashboard)
+    path('', dashboard_view, name='home'), 
+    
+    # 2. Rutas para la API y HTMX
+    path('api/', include('trading.urls')),
 ]
