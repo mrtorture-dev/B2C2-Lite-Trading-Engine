@@ -11,3 +11,7 @@ flake8
 black
 web3
 eth-account
+numpy
+pandas
+scipy
+statsmodels

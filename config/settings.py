@@ -140,9 +140,9 @@ CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULE = {
-    'fetch-crypto-prices-every-30s': {  # Puedes cambiarle el nombre a la clave si quieres
-        'task': 'trading.tasks.fetch_binance_prices',  # <--- AQUÍ ESTABA EL ERROR (Antes decía fetch_btc_price)
-        'schedule': 30.0,
+    'fetch-crypto-prices-every-3s': {
+        'task': 'trading.tasks.fetch_binance_prices',
+        'schedule': 3.0,
     },
 }
 

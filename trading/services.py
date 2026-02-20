@@ -13,6 +13,67 @@ class OrderService:
         return Decimal(str(prices.get(asset_code, 0)))
 
     @staticmethod
+    def execute_quant_trade(user, asset_code, side, amount):
+        """
+        ZERO-FEE execution for Experimental Quant Mode.
+        """
+        market_price = OrderService.get_market_price(asset_code)
+        if market_price == 0:
+            raise ValueError("Market offline.")
+
+        final_price = market_price
+        amount = Decimal(str(amount))
+        total_cost = amount * final_price
+
+        User = get_user_model()
+        system_user, _ = User.objects.get_or_create(username='B2C2_QUANT_LP')
+
+        with transaction.atomic():
+            asset = Asset.objects.get(code=asset_code)
+            usd_asset = Asset.objects.get(code='USD')
+
+            user_order = Order.objects.create(
+                user=user, asset=asset, side=side, 
+                initial_amount=amount, price=final_price, status='FILLED'
+            )
+
+            if side == 'BUY':
+                usd_wallet = Wallet.objects.select_for_update().get(user=user, asset=usd_asset)
+                if usd_wallet.balance < total_cost:
+                    raise ValueError(f"Insufficient funds for Quant Trade.")
+                usd_wallet.balance -= total_cost
+                usd_wallet.save()
+                
+                crypto_wallet, _ = Wallet.objects.get_or_create(user=user, asset=asset)
+                crypto_wallet.balance += amount
+                crypto_wallet.save()
+
+                system_order = Order.objects.create(
+                    user=system_user, asset=asset, side='SELL',
+                    initial_amount=amount, price=final_price, status='FILLED'
+                )
+                buyer, seller = user_order, system_order
+            else:
+                crypto_wallet = Wallet.objects.select_for_update().get(user=user, asset=asset)
+                if crypto_wallet.balance < amount:
+                    raise ValueError("Insufficient crypto for Quant Trade.")
+                crypto_wallet.balance -= amount
+                crypto_wallet.save()
+
+                usd_wallet, _ = Wallet.objects.get_or_create(user=user, asset=usd_asset)
+                usd_wallet.balance += total_cost
+                usd_wallet.save()
+
+                system_order = Order.objects.create(
+                    user=system_user, asset=asset, side='BUY',
+                    initial_amount=amount, price=final_price, status='FILLED'
+                )
+                buyer, seller = system_order, user_order
+
+            Trade.objects.create(buy_order=buyer, sell_order=seller, amount=amount, price=final_price)
+            return user_order
+
+    @staticmethod
     def execute_lp_trade(user, asset_code, side, amount):
         """
         EJECUCIÓN INSTANTÁNEA CONTRA EL BOT (Con Spread del 1%)

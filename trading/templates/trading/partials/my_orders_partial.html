@@ -5,6 +5,7 @@
             <tr>
                 <th class="p-2">ASSET</th>
                 <th class="p-2">SIDE</th>
+                <th class="p-2">AMOUNT</th>
                 <th class="p-2">PRICE</th>
                 <th class="p-2">ACTION</th>
             </tr>
@@ -16,6 +17,7 @@
                 <td class="p-2 {% if order.side == 'BUY' %}text-green-500{% else %}text-red-500{% endif %}">
                     {{ order.side }}
                 </td>
+                <td class="p-2">{{ order.initial_amount|floatformat:4 }}</td>
                 <td class="p-2">${{ order.price|floatformat:2 }}</td>
                 <td class="p-2">
                     <button 
@@ -28,7 +30,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" class="p-3 text-center text-gray-600 italic">> NO_ACTIVE_ORDERS</td>
+                <td colspan="5" class="p-3 text-center text-gray-600 italic">> NO_ACTIVE_ORDERS</td>
             </tr>
             {% endfor %}
         </tbody>

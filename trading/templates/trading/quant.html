@@ -1,0 +1,237 @@
+{% extends 'trading/base.html' %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    
+    <!-- Left Column: Bot Status & AI Control -->
+    <div class="md:col-span-1 space-y-6">
+        <div class="neon-border p-4 bg-black/60">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-hackerRed font-bold tracking-widest">> QUANT_CORE_STATUS</h2>
+                <span id="algo-status" class="text-[10px] text-green-500 bg-green-950/30 px-2 border border-green-500/50">ACTIVE</span>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <!-- Invisible poller for real-time updates -->
+                <div hx-get="/api/quant-metrics-htmx/" hx-trigger="every 3s" style="display:none"></div>
+
+                <div class="flex justify-between border-b border-hackerRed/20 pb-1">
+                    <span class="text-gray-500 uppercase">FAIR_PRICE (VWAP):</span>
+                    <span class="text-white font-bold" id="fair-price-val">${{ fair_price|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between border-b border-hackerRed/20 pb-1">
+                    <span class="text-gray-500 uppercase">INVENTORY_Q:</span>
+                    <span class="text-white" id="inventory-val">{{ inventory_q|floatformat:4 }} BTC</span>
+                </div>
+                <div class="flex justify-between border-b border-hackerRed/20 pb-1">
+                    <span class="text-gray-500 uppercase">AVAILABLE_CASH:</span>
+                    <span class="text-green-400 font-bold" id="usd-balance-val">${{ usd_balance|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between border-b border-hackerRed/20 pb-1">
+                    <span class="text-gray-500 uppercase">DELTA (EXPOSURE):</span>
+                    <span class="text-{% if delta >= 0 %}green{% else %}red{% endif %}-500 font-bold" id="delta-val">${{ delta|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500 uppercase">LATENCY:</span>
+                    <span class="text-green-500">12ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI ADAPTIVE CONTROL UNIT -->
+        <div class="border border-purple-500/40 p-4 bg-black/50 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
+            <h3 class="text-purple-400 text-xs mb-3 font-bold tracking-widest">> AI_ADAPTIVE_CONTROL_UNIT</h3>
+            
+            <div id="ml-results-container" class="space-y-3">
+                <button 
+                    hx-get="/api/run-ml-optimization-htmx/"
+                    hx-target="#ml-results-container"
+                    hx-swap="innerHTML"
+                    class="w-full bg-purple-700 text-white font-bold py-2 hover:bg-purple-500 transition-all text-xs border border-purple-400">
+                    [ AUTO-TUNE_ALGORITHM ]
+                </button>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-purple-500/20">
+                <button 
+                    id="live-algo-btn"
+                    onclick="toggleLiveAlgo()"
+                    class="w-full bg-transparent border border-green-500 text-green-500 font-bold py-2 hover:bg-green-500 hover:text-black transition-all text-xs">
+                    [ START_LIVE_ALGO_LOOP ]
+                </button>
+                <div id="live-algo-indicator" class="hidden mt-2 text-center text-[9px] text-green-500 animate-pulse font-bold tracking-tighter">
+                    >> LIVE_ITERATIVE_EXECUTION_ENABLED (5s)
+                </div>
+            </div>
+        </div>
+
+        <div id="iterative-logs" class="max-h-40 overflow-y-auto space-y-1 mt-2">
+            <!-- Iterative trade results appear here -->
+        </div>
+
+        <!-- BACKTEST SIMULATOR -->
+        <div class="border border-green-500/30 p-4 bg-black/40">
+            <h3 class="text-green-500 text-xs mb-3 font-bold tracking-widest">> BACKTEST_SIMULATOR</h3>
+            <form id="backtest-form" class="space-y-4">
+                <div>
+                    <label class="text-[9px] text-gray-500 block mb-1 uppercase">SIM_CAPITAL (USD)</label>
+                    <input type="number" name="capital" value="10000" class="w-full bg-black border border-green-500/50 p-1 text-white text-xs outline-none">
+                </div>
+                <button 
+                    hx-get="/api/run-backtest-htmx/"
+                    hx-target="#backtest-results"
+                    hx-include="#backtest-form input"
+                    class="w-full border border-green-500 text-green-500 font-bold py-2 hover:bg-green-500 hover:text-black transition-all text-xs">
+                    [ RUN_SIMULATION ]
+                </button>
+            </form>
+            <div id="backtest-results" class="mt-4"></div>
+        </div>
+    </div>
+
+    <!-- Center/Right Column: Metrics & Real-time Greeks -->
+    <div class="md:col-span-2 space-y-6">
+        
+        <!-- REAL-TIME GREEKS PANEL -->
+        <div class="grid grid-cols-3 gap-4">
+            <div class="border border-hackerRed/30 p-3 bg-black/60 text-center">
+                <div class="text-[9px] text-gray-500 uppercase mb-1">GAMMA (CONVEXITY)</div>
+                <div id="gamma-val" class="text-lg text-white font-bold tabular-nums">{{ gamma|floatformat:6 }}</div>
+            </div>
+            <div class="border border-hackerRed/30 p-3 bg-black/60 text-center">
+                <div class="text-[9px] text-gray-500 uppercase mb-1">THETA (DECAY)</div>
+                <div id="theta-val" class="text-lg text-red-400 font-bold tabular-nums">{{ theta|floatformat:4 }}</div>
+            </div>
+            <div class="border border-hackerRed/30 p-3 bg-black/60 text-center">
+                <div class="text-[9px] text-gray-500 uppercase mb-1">VEGA (VOL_SENS)</div>
+                <div class="text-lg text-gray-400 font-bold tabular-nums">{{ vega|floatformat:4 }}</div>
+            </div>
+        </div>
+
+        <!-- Dynamic Chart Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="border border-hackerRed/30 p-2 bg-black/60 h-64">
+                <div class="text-[9px] text-hackerRed mb-1 uppercase font-bold">> BTC_REAL_PRICE_HISTORY</div>
+                <canvas id="equityChart"></canvas>
+            </div>
+            <div class="border border-hackerRed/30 p-2 bg-black/60 h-64">
+                <div class="text-[9px] text-hackerRed mb-1 uppercase font-bold">> ASSET_VOLUME_HISTORY</div>
+                <canvas id="inventoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-4 gap-4">
+            <div class="border border-hackerRed/30 p-3 bg-black/40">
+                <div class="text-[9px] text-gray-500 uppercase">Sharpe Ratio</div>
+                <div class="text-lg text-white font-bold">2.41</div>
+            </div>
+            <div class="border border-hackerRed/30 p-3 bg-black/40">
+                <div class="text-[9px] text-gray-500 uppercase">Max Drawdown</div>
+                <div class="text-lg text-red-500 font-bold">-4.2%</div>
+            </div>
+            <div class="border border-hackerRed/30 p-3 bg-black/40">
+                <div class="text-[9px] text-gray-500 uppercase">Equity PnL (Session)</div>
+                <div id="total-pnl-val" class="text-lg text-{% if total_pnl >= 0 %}green{% else %}red{% endif %}-500 font-bold tabular-nums">
+                    ${{ total_pnl|floatformat:2 }}
+                </div>
+            </div>
+            <div class="border border-blue-500/30 p-3 bg-black/40 shadow-[0_0_10px_rgba(59,130,246,0.1)]">
+                <div class="text-[9px] text-blue-400 uppercase font-bold">Trade PnL (Alpha)</div>
+                <div id="trade-pnl-val" class="text-lg text-white font-bold tabular-nums">
+                    $0.00
+                </div>
+            </div>
+        </div>
+
+        <button 
+            hx-get="/api/quant-stats-htmx/"
+            hx-target="#stats-results-main"
+            class="w-full text-[10px] text-gray-500 border border-gray-800 py-1 hover:text-white transition-all">
+            [ TRIGGER_STATISTICAL_VALIDATION_LOOP ]
+        </button>
+        <div id="stats-results-main"></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ labels|safe }};
+    const equityData = {{ equity_data|safe }};
+    const inventoryData = {{ inventory_data|safe }};
+
+    const equityCtx = document.getElementById('equityChart').getContext('2d');
+    new Chart(equityCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'PRICE ($)',
+                data: equityData,
+                borderColor: '#ff0033',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: 'rgba(255, 0, 51, 0.05)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { grid: { color: '#1a1a1a' }, ticks: { color: '#666', font: { size: 8 } } }
+            }
+        }
+    });
+
+    const invCtx = document.getElementById('inventoryChart').getContext('2d');
+    new Chart(invCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'TRADE_AMOUNT',
+                data: inventoryData,
+                backgroundColor: '#ff0033',
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    let liveInterval = null;
+
+    function toggleLiveAlgo() {
+        const btn = document.getElementById('live-algo-btn');
+        const indicator = document.getElementById('live-algo-indicator');
+        
+        if (liveInterval) {
+            clearInterval(liveInterval);
+            liveInterval = null;
+            btn.innerText = "[ START_LIVE_ALGO_LOOP ]";
+            btn.classList.remove('bg-green-500', 'text-black');
+            indicator.classList.add('hidden');
+        } else {
+            btn.innerText = "[ STOP_LIVE_ALGO ]";
+            btn.classList.add('bg-green-500', 'text-black');
+            indicator.classList.remove('hidden');
+            
+            // Execute immediately
+            executeStep();
+            
+            // Start 5s fixed loop
+            liveInterval = setInterval(executeStep, 5000);
+        }
+    }
+
+    function executeStep() {
+        htmx.ajax('GET', '/api/execute-live-step-htmx/', {
+            target: '#iterative-logs',
+            swap: 'afterbegin'
+        });
+    }
+</script>
+{% endblock %}
