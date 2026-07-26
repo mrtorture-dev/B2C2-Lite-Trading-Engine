@@ -11,6 +11,15 @@ A high-performance, transactional trading engine backend simulating a cryptocurr
 * **Containerized:** "Plug and play" environment using Docker and Docker Compose.
 * **TDD Approach:** Core logic protected by Pytest suites covering edge cases (e.g., insufficient funds, negative balances).
 
+## 🧠 Why Python instead of C++?
+
+While C++ is the industry standard for ultra-low latency High-Frequency Trading (HFT) engines due to its deterministic memory management and raw execution speed, this specific engine was built in **Python** for the following strategic reasons:
+
+1. **Development Velocity & Prototyping:** Python's rich ecosystem (Django, Celery) allows for rapid prototyping of complex architectural patterns (message queues, async workers) in days rather than weeks.
+2. **I/O Bound Architecture:** This engine acts as a "Lite" backend dealing heavily with network requests (fetching external prices) and database transactions. The bottleneck here is I/O, not CPU. Python's `asyncio` and Celery workers handle I/O bound tasks exceptionally well.
+3. **Database Concurrency:** The core challenge solved here is ACID compliance and row-level locking (`select_for_update`) within the PostgreSQL ledger. The database layer handles the transactional integrity, making the application language speed less critical for this specific boundary.
+4. **C-Extensions:** Critical numerical operations in Python can easily be offloaded to C-based libraries (NumPy, Pandas) if CPU bottlenecks arise in pricing models.
+
 ## 🛠 Tech Stack
 
 * **Language:** Python 3.10
