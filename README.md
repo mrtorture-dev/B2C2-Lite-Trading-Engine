@@ -33,8 +33,8 @@ While C++ is the industry standard for ultra-low latency High-Frequency Trading 
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/TU_USUARIO/b2c2-trading-engine.git](https://github.com/TU_USUARIO/b2c2-trading-engine.git)
-    cd b2c2-trading-engine
+    git clone https://github.com/mrtorture-dev/B2C2-Lite-Trading-Engine.git
+    cd B2C2-Lite-Trading-Engine
     ```
 
 2.  **Create a `.env` file:**
@@ -61,3 +61,4 @@ To verify the financial logic and transactional safety:
 
 ```bash
 docker-compose exec web pytest
+```
